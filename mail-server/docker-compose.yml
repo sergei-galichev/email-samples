@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  mongo:
+    image: 'mongo:4.2.16-bionic'
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: mail-app
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: mongomaster
+    volumes:
+      - ./data/mongo/:/data/db
