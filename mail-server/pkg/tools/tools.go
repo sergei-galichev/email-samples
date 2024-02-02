@@ -1,10 +1,17 @@
 package tools
 
 import (
+	"bufio"
+	"code.sajari.com/docconv/v2"
 	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
+	"html/template"
+	"log"
 	"mail-server/internal/model"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -47,7 +54,6 @@ func ReadMultiForm(w http.ResponseWriter, r *http.Request, mailUpload model.Mail
 	form := r.MultipartForm
 
 	mailUpload.DocxName = form.Value["docx_name"][0]
-
 	mailUpload.Date = time.Now()
 
 	file, ok := form.File["docx"]
@@ -55,7 +61,74 @@ func ReadMultiForm(w http.ResponseWriter, r *http.Request, mailUpload model.Mail
 		return model.MailUpload{}, errors.New("[ReadMultiForm]: cannot get uploaded document")
 	}
 
-	_ = file
+	if file[0].Filename != "" {
+		fileExtension := filepath.Ext(file[0].Filename)
+
+		f, err := file[0].Open()
+		if err != nil {
+			return model.MailUpload{}, errors.New("[ReadMultiForm]: cannot open uploaded document")
+		}
+		defer func() {
+			err = f.Close()
+			if err != nil {
+				log.Fatal("[ReadMultiForm]: cannot close uploaded document")
+			}
+		}()
+
+		switch fileExtension {
+		case ".txt":
+			scanner := bufio.NewScanner(f)
+			builder := strings.Builder{}
+
+			for scanner.Scan() {
+				line := fmt.Sprintf("%s<br>", scanner.Text())
+				builder.WriteString(line)
+			}
+
+			mailUpload.DocxContent = builder.String()
+			if err = scanner.Err(); err != nil {
+				log.Fatal("[ReadMultiForm]: scanner error: cannot read uploaded document")
+			}
+		case ".docx", ".doc":
+			res, _, err := docconv.ConvertDocx(f)
+			if err != nil {
+				log.Fatal("[ReadMultiForm]: docconv error: cannot convert uploaded document")
+			}
+
+			lines := strings.Split(res, "\n")
+
+			builder := strings.Builder{}
+
+			for _, line := range lines {
+				builder.WriteString(fmt.Sprintf("%s<br>", line))
+			}
+
+			mailUpload.DocxContent = builder.String()
+
+		default:
+			return model.MailUpload{},
+				errors.New(
+					"[ReadMultiForm]: uploaded document not allowed: try .docx, .doc or .txt",
+				)
+		}
+
+	}
 
 	return mailUpload, nil
+}
+
+func HTMLRender(w http.ResponseWriter, r *http.Request, data interface{}) error {
+	filePath := "./index.html"
+
+	t, err := template.ParseFiles(filePath)
+	if err != nil {
+		return errors.New("[HTMLRender]: cannot parse template")
+	}
+
+	err = t.Execute(w, data)
+	if err != nil {
+		return errors.New("[HTMLRender]: cannot execute template")
+	}
+
+	return nil
 }
