@@ -28,6 +28,7 @@ func NewStorage() *StorageMongoDB {
 	for {
 		client, err = connect(uri)
 		if err != nil {
+			log.Println(err)
 			log.Println("MongoDB is not connected")
 			count++
 		} else {
@@ -56,6 +57,7 @@ func connect(uri string) (*mongo.Client, error) {
 	dbCtx, dbCtxCancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer dbCtxCancel()
 
+	log.Println(uri)
 	client, err := mongo.Connect(dbCtx, options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, errors.New("Error to connect to MongoDB")
