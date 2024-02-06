@@ -118,7 +118,7 @@ func ReadMultiForm(w http.ResponseWriter, r *http.Request, mailUpload model.Mail
 }
 
 func HTMLRender(w http.ResponseWriter, r *http.Request, data interface{}) error {
-	filePath := "./index.html"
+	filePath := "./static/index.html"
 
 	t, err := template.ParseFiles(filePath)
 	if err != nil {
