@@ -1,5 +1,8 @@
-# Building a Concurrent Mail Server API with Goroutines and Gmail Integration 
-This project taken from [guide](https://earthly.dev/blog/mail-server-api-goroutines-gmail/)
+# Building a Concurrent Mail Server API with Goroutines and Gmail Integration
+
+This project taken from [guide](https://earthly.dev/blog/mail-server-api-goroutines-gmail/).
+
+Link to source code from article ([GitHub](https://github.com/akinbyte/mail-app/blob/main/index.html)). 
 
 Used dependencies:
 1. [go-mongodb-driver](https://www.mongodb.com/docs/drivers/go/current/)
