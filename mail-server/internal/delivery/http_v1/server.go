@@ -38,7 +38,7 @@ func NewServer(
 }
 
 func (s *HttpServer) Run() {
-	log.Printf("Start HttpServer on: %s", s.srv.Addr)
+	log.Printf("HTTP Server is started on address: %s", s.srv.Addr)
 	go func() {
 		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatal("Shutting down the Mail App HttpServer")
