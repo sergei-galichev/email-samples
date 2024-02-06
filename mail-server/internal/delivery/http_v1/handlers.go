@@ -80,7 +80,7 @@ func (s *HttpServer) SendMail() http.HandlerFunc {
 		}
 
 		for _, item := range res {
-			subEmail := item["mail"].(string)
+			subEmail := item["email"].(string)
 			firstName := item["first_name"].(string)
 			lastName := item["last_name"].(string)
 
