@@ -23,15 +23,23 @@ type serviceProvider struct {
 
 	storage *mongodb.StorageMongoDB
 
-	mailChan chan model.Mail
+	mailChan    chan model.Mail
+	workerCount int
 }
 
 func NewServiceProvider() *serviceProvider {
+	var bufferSize int
+	workerCount := 5
+
+	mailChan := make(chan model.Mail, bufferSize)
+
 	storage := mongodb.NewStorage()
 
 	return &serviceProvider{
 
-		storage: storage,
+		storage:     storage,
+		mailChan:    mailChan,
+		workerCount: workerCount,
 	}
 }
 
@@ -57,10 +65,18 @@ func (s *serviceProvider) MailService() services.MailService {
 	return s.mailService
 }
 
-func (s *serviceProvider) Server() *http_v1.HttpServer {
+func (s *serviceProvider) HttpServer() *http_v1.HttpServer {
 	if s.httpServer == nil {
 		s.httpServer = http_v1.NewServer(s.MailService(), s.mailChan)
 	}
 
 	return s.httpServer
+}
+
+func (s *serviceProvider) EmailServer() *email_v1.EmailServer {
+	if s.emailServer == nil {
+		s.emailServer = email_v1.NewEmailServer(s.mailChan, s.workerCount)
+	}
+
+	return s.emailServer
 }
