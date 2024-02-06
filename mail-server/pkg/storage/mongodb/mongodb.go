@@ -45,8 +45,6 @@ func NewStorage() *StorageMongoDB {
 		continue
 	}
 
-	log.Println("MongoDB Connection Success")
-
 	return &StorageMongoDB{
 		dbName: dbName,
 		client: client,
@@ -76,11 +74,14 @@ func (s *StorageMongoDB) Client() *mongo.Client {
 }
 
 func (s *StorageMongoDB) Collection(name string) *mongo.Collection {
-	return s.client.Database("mail-app").Collection(name)
+	return s.client.Database(s.dbName).Collection(name)
 }
 
 func (s *StorageMongoDB) Close() {
-	err := s.client.Disconnect(context.TODO())
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := s.client.Disconnect(ctx)
 	if err != nil {
 		log.Fatal("Could not disconnect from MongoDB: ", err)
 	}
